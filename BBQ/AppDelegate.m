@@ -7,6 +7,9 @@
 //
 
 #import "AppDelegate.h"
+#import "tabViewController.h"
+#import "Login.h"
+#import "LoginViewController.h"
 
 @interface AppDelegate ()
 
@@ -17,6 +20,32 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+    _window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    
+    NSString * documentPath =[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    NSString * sqliteDBPath = [documentPath stringByAppendingPathComponent:@"BBQ.db"];
+    NSFileManager * fileManager =[ NSFileManager defaultManager];
+    NSError * error = nil;
+    if (![fileManager fileExistsAtPath:sqliteDBPath]) {
+        [fileManager copyItemAtPath:[[NSBundle mainBundle] pathForResource:@"BBQ" ofType:@"db"]  toPath:sqliteDBPath error:&error];
+        if (!error) {
+            NSLog(@"copy db files success!");
+        }
+        else {
+            NSLog(@"copy db file failed!");
+        }
+    }
+    
+    if ([Login isLogin]) {
+        tabViewController * myTabBarViewController =[[tabViewController alloc] init];
+        self.window.rootViewController =myTabBarViewController;
+    }
+    else{
+        LoginViewController *loginViewController =[[LoginViewController alloc] init];
+        self.window.rootViewController =loginViewController;
+    }
+    
+    [_window makeKeyAndVisible];
     return YES;
 }
 
@@ -42,4 +71,20 @@
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
 
+
+-(void)LoginSuccess
+{
+    if ([Login isLogin]) {
+        tabViewController * myTabBarViewController =[[tabViewController alloc] init];
+        self.window.rootViewController =myTabBarViewController;
+    }
+}
+
+-(void)LogoutSuccess
+{
+    if (![Login isLogin]) {
+        LoginViewController *loginViewController =[[LoginViewController alloc] init];
+        self.window.rootViewController =loginViewController;
+    }
+}
 @end
