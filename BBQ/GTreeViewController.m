@@ -13,6 +13,7 @@
 #import "EGORefreshTableHeaderView.h"
 #import "ShowImage.h"
 #import "QiniuToken.h"
+#include <objc/runtime.h>
 
 @interface GTreeViewController ()<EGORefreshTableHeaderDelegate,SingleInfoTableViewCellDelegate>
 {
@@ -30,6 +31,23 @@
     // Do any additional setup after loading the view from its nib.
     self.title =@"成长树";
     ChildView * childView =[[ChildView alloc] initWithChildInfo:@"42000420150220"];
+    
+    objc_property_attribute_t type = {"T", "@\"NSString\""};
+    objc_property_attribute_t ownership = { "C", "" };
+    objc_property_attribute_t backingivar = { "V", "_ivar1"};
+    objc_property_attribute_t attrs[] = {type, ownership, backingivar};
+    class_addProperty([ChildView class], "test", attrs, 3);
+    
+    
+    
+    unsigned int count = 0;
+    objc_property_t  * ivar = class_copyPropertyList([ChildView class], &count);
+    for (int i=0; i<count; i++) {
+        objc_property_t var = ivar[i];
+        NSLog(@"%s------%s",property_getName(var),property_getAttributes(var));
+        
+    }
+    
     [[FMDBModel sharedFMDBModel] setCurrrentChildID:@"42000420150220"];
     
     UILabel* view = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 30)];
@@ -173,8 +191,11 @@
 {
     if (view==_refreshHeaderView) {
         [self performSelector:@selector(doneLoadingTableViewData:) withObject:_refreshHeaderView afterDelay:1];
+        NSNumber* num = [NSNumber numberWithInt:0];
+        if ([_gtreeArray count]>0) {
+            num =[[_gtreeArray objectAtIndex:0] objectForKey:@"gtreeID"];
+        }
         
-        NSNumber* num =[[_gtreeArray objectAtIndex:0] objectForKey:@"gtreeID"];
         NSInteger lastindex = [num integerValue];
         NSArray * newArray = [[FMDBModel sharedFMDBModel] getNewGTreeInfo:lastindex];
         if ([newArray count]>0) {
